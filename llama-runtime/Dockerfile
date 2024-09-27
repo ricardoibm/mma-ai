@@ -1,9 +1,8 @@
-FROM ubuntu:22.04 as builder
+FROM registry.access.redhat.com/ubi9/ubi as builder
 
-RUN apt-get update && apt-get install -y \
-  build-essential \
+RUN dnf update && dnf -y groupinstall 'Development Tools' && dnf install -y \
   cmake git ninja-build \
-  && rm -rf /var/lib/apt/lists/*
+  && dnf clean all
 
 
 RUN git clone --recursive https://github.com/DanielCasali/OpenBLAS.git && cd OpenBLAS && \
@@ -19,12 +18,11 @@ RUN git clone https://github.com/DanielCasali/llama.cpp.git && cd llama.cpp && s
 
 CMD bash
 
-FROM ubuntu:22.04
+FROM registry.access.redhat.com/ubi9/ubi 
 
 COPY --from=builder --chmod=755 /llama.cpp/build/bin/llama-server /usr/local/bin
 COPY --from=builder --chmod=644 /llama.cpp/build/src/libllama.so /llama.cpp/build/src/libllama.so
 COPY --from=builder --chmod=644 /llama.cpp/build/ggml/src/libggml.so /llama.cpp/build/ggml/src/libggml.so
-COPY --from=builder --chmod=644 /lib/powerpc64le-linux-gnu/libgomp.so.1 /lib/powerpc64le-linux-gnu/libgomp.so.1
 
 
-ENTRYPOINT ["/usr/local/bin/llama-server", "--host", "0.0.0.0"]
+ENTRYPOINT [ "/usr/local/bin/llama-server", "--host", "0.0.0.0"]
