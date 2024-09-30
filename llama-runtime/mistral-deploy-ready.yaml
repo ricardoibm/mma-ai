@@ -32,7 +32,8 @@ spec:
         - name: llama-cpp
           image: quay.io/daniel_casali/llama.cpp-mma:v3
           imagePullPolicy: Always
-          args: ["-m", "/models/mistral-7b-instruct-v0.3.Q4_K_M.gguf", "-c", "4096", "-b", "32"]
+#          args: ["-m", "/models/mistral-7b-instruct-v0.3.Q4_K_M.gguf", "-c", "4096", "-b", "32"]
+          args: ["-m", "/models/mistral-7b-instruct-v0.3.Q4_K_M.gguf", "--prio", "3", "-c", "16348", "-n", "-1"]
           ports:
             - containerPort: 8080
               name: http
