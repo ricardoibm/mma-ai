@@ -58,8 +58,8 @@ spec:
               value: minioadmin
       volumes:
         - name: minio-data
-          persistentVolumeClaim:
-            claimName: minio-pvc
+          emptyDir:
+            medium: Memory
   strategy:
     type: Recreate
 ---
