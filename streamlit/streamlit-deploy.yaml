@@ -17,6 +17,9 @@ spec:
       medium: Memory
   containers:
   - name: streamlit
+    env:
+    - name: PDF_URL
+      value: "https://github.com/DanielCasali/mma-ai/raw/main/datasource/The_Forgotten_Lighthouse_Book.pdf"
     securityContext:
       runAsNonRoot: true
       allowPrivilegeEscalation: false

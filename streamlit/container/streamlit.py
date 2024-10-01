@@ -9,6 +9,7 @@ from langchain.text_splitter import CharacterTextSplitter
 import httpx
 import json
 import asyncio
+import urllib.parse
 
 # Streamlit app title
 st.title("Retrieval Augmented Generation based on The Forgotten Lighthouse story")
@@ -23,11 +24,23 @@ LLAMA_PORT = "8080"
 @st.cache_resource
 def load_and_process_pdfs():
     pdf_urls = [
+        os.getenv("PDF_URL")
+    ]
+    # Parse the URL
+    url_parts = urllib.parse.urlparse(os.getenv("PDF_URL"))
+    # Get the path
+    path_query = url_parts.path
+    # Split the path into path and filename
+    path_filename = os.path.split(path_query)
+    # Get the filename
+    pdf_names = [os.path.basename(path_filename[1])]
+#def load_and_process_pdfs():
+#    pdf_urls = [
         #"https://www.redbooks.ibm.com/redbooks/pdfs/sg248513.pdf",
         #"https://www.redbooks.ibm.com/redbooks/pdfs/sg248512.pdf"
-        "https://github.com/DanielCasali/mma-ai/raw/main/datasource/The_Forgotten_Lighthouse_Book.pdf"
-    ]
-    pdf_names = ["The_Forgotten_Lighthouse_Book.pdf"]
+        #"https://github.com/DanielCasali/mma-ai/raw/main/datasource/The_Forgotten_Lighthouse_Book.pdf"
+#    ]
+    #pdf_names = ["The_Forgotten_Lighthouse_Book.pdf"]
     #pdf_names = ["IBM_Redbook_8513.pdf", "IBM_Redbook_8512.pdf"]
     
     all_docs = []
