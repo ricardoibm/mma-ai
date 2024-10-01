@@ -12,7 +12,7 @@ import asyncio
 import urllib.parse
 
 # Streamlit app title
-st.title("Retrieval Augmented Generation based on The Forgotten Lighthouse story")
+st.title("Retrieval Augmented Generation based on a given pdf")
 
 # Milvus and LLAMA connection parameters
 MILVUS_HOST = "milvus-service"
@@ -82,7 +82,7 @@ def load_and_process_pdfs():
 
 # Function to build prompt
 def build_prompt(question, topn_chunks: list[str]):
-    prompt = "Instructions: Compose a concise answer to the query using the provided search results\n\n"
+    prompt = "Instructions: Compose a concise answer to the query using the provided search results, no need to mention you found it in the resuts\n\n"
     prompt += "Search results:\n"
     for chunk in topn_chunks:
         prompt += f"[Document: {chunk[0].metadata.get('source', 'Unknown')}, Page: {chunk[0].metadata.get('page', 'Unknown')}]: " + chunk[0].page_content.replace("\n", " ") + "\n\n"
@@ -114,7 +114,7 @@ with st.spinner("Loading and processing PDFs... This may take a few minutes."):
     vector_store = load_and_process_pdfs()
 
 # User input
-question = st.text_input("Enter your question about The Forgotten Lighthouse:")
+question = st.text_input("Enter your question about the pdf you picked:")
 
 if question:
     # Perform similarity search
