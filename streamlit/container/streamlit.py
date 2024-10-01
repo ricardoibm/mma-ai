@@ -11,7 +11,7 @@ import json
 import asyncio
 
 # Streamlit app title
-st.title("Power Virtual Server Question Answering System")
+st.title("Retrieval Augmented Generation based on The Forgotten Lighthouse story")
 
 # Milvus and LLAMA connection parameters
 MILVUS_HOST = "milvus-service"
@@ -23,10 +23,12 @@ LLAMA_PORT = "8080"
 @st.cache_resource
 def load_and_process_pdfs():
     pdf_urls = [
-        "https://www.redbooks.ibm.com/redbooks/pdfs/sg248513.pdf",
-        "https://www.redbooks.ibm.com/redbooks/pdfs/sg248512.pdf"
+        #"https://www.redbooks.ibm.com/redbooks/pdfs/sg248513.pdf",
+        #"https://www.redbooks.ibm.com/redbooks/pdfs/sg248512.pdf"
+        "https://github.com/DanielCasali/mma-ai/raw/main/datasource/The_Forgotten_Lighthouse_Book.pdf"
     ]
-    pdf_names = ["IBM_Redbook_8513.pdf", "IBM_Redbook_8512.pdf"]
+    pdf_names = ["The_Forgotten_Lighthouse_Book.pdf"]
+    #pdf_names = ["IBM_Redbook_8513.pdf", "IBM_Redbook_8512.pdf"]
     
     all_docs = []
     
@@ -58,7 +60,7 @@ def load_and_process_pdfs():
     vector_store = Milvus.from_documents(
         all_docs,
         embedding=embeddings,
-        collection_name="ibm_redbooks",
+        collection_name="lighthouse",
         connection_args={"host": MILVUS_HOST, "port": MILVUS_PORT}
     )
     
@@ -67,8 +69,7 @@ def load_and_process_pdfs():
 
 # Function to build prompt
 def build_prompt(question, topn_chunks: list[str]):
-    prompt = "Instructions: Compose a concise answer to the query using the provided search results, if the query says powervs understand the user meant power virtual server." \
-             "If the search results do not contain relevant information, say 'I don't have enough information to answer that question.'\n\n"
+    prompt = "Instructions: Compose a concise answer to the query using the provided search results\n\n"
     prompt += "Search results:\n"
     for chunk in topn_chunks:
         prompt += f"[Document: {chunk[0].metadata.get('source', 'Unknown')}, Page: {chunk[0].metadata.get('page', 'Unknown')}]: " + chunk[0].page_content.replace("\n", " ") + "\n\n"
@@ -100,7 +101,7 @@ with st.spinner("Loading and processing PDFs... This may take a few minutes."):
     vector_store = load_and_process_pdfs()
 
 # User input
-question = st.text_input("Enter your question about Power Virtual Server:")
+question = st.text_input("Enter your question about The Forgotten Lighthouse:")
 
 if question:
     # Perform similarity search
