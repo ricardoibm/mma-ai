@@ -25,7 +25,7 @@ spec:
       allowPrivilegeEscalation: false
       seccompProfile:
         type: "RuntimeDefault" 
-    image: image-registry.openshift-image-registry.svc:5000/ai/streamlit:latest
+    image: quay.io/daniel_casali/pdf_rag_milvus:latest
     imagePullPolicy: Always
     volumeMounts:
       - mountPath: /.cache
