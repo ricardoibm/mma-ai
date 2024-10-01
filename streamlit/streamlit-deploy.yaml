@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: streamlit
+  labels:
+    app: streamlit
+spec:
+  volumes:
+  - name: cache
+    emptyDir:
+      medium: Memory
+  - name: dshm
+    emptyDir:
+      medium: Memory
+  - name: tmp
+    emptyDir:
+      medium: Memory
+  containers:
+  - name: streamlit
+    securityContext:
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      seccompProfile:
+        type: "RuntimeDefault" 
+    image: image-registry.openshift-image-registry.svc:5000/ai/streamlit:latest
+    imagePullPolicy: Always
+    volumeMounts:
+      - mountPath: /.cache
+        name: cache
+      - mountPath: /tmp
+        name: tmp
+      - mountPath: /dev/shm
+        name: dshm
+    ports:
+    - containerPort: 8501
+      name: streamlit
