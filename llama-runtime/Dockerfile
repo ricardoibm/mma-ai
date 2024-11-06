@@ -1,7 +1,7 @@
 FROM registry.access.redhat.com/ubi9/ubi as builder
 
-RUN dnf update -y && dnf -y groupinstall 'Development Tools' && dnf install -y \
-  cmake git ninja-build \
+RUN dnf update -y && dnf install -y \
+  cmake git ninja-build gcc-c++ \
   && dnf clean all
 
 
