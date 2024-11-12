@@ -168,6 +168,27 @@ spec:
     app: mma-ai
   type: ClusterIP
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "llama-service"
+  namespace: ai
+  labels:
+    app: mma-ai
+    app.kubernetes.io/component: mma-ai
+    app.kubernetes.io/instance: mma-ai
+    app.kubernetes.io/name: mma-ai
+    app.kubernetes.io/part-of: mma-ai-app
+spec:
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    app: mma-ai
+  type: ClusterIP
+---
 # Route to expose the service externally
 apiVersion: route.openshift.io/v1
 kind: Route
