@@ -1,0 +1,633 @@
+[1/3] STEP 1/6: FROM ubi9/ubi AS stage1
+[1/3] STEP 2/6: ARG VERSION=0.27.0
+--> Using cache eeb2bc946f92b93c264da706704c9a14d302d002ed166a548291957b1aada686
+--> eeb2bc946f92
+[1/3] STEP 3/6: RUN dnf update -y &&     dnf install -y git gcc-c++     bzip2     ca-certificates     ca-certificates     && dnf clean all
+--> Using cache d0cf4957b899a63502b0bf595e04c716ea33ef2fe5d94953a64384815bd6f7bd
+--> d0cf4957b899
+[1/3] STEP 4/6: RUN git clone --recursive https://github.com/DanielCasali/OpenBLAS.git && cd OpenBLAS &&     make -j$(nproc --all) TARGET=POWER10 USE_THREAD=1 &&     make PREFIX=/opt/OpenBLAS install &&     rm -rf OpenBLAS &&     cd /
+--> Using cache 919a83921c6ffd7b5469d652aaff614966688c43d8ae7ecd106b5f4c353f9d43
+--> 919a83921c6f
+[1/3] STEP 5/6: ARG TARGETARCH
+--> Using cache 539221d57b7814205609e663d62ed5815509e68d15aa1df780a1581794c5a763
+--> 539221d57b78
+[1/3] STEP 6/6: RUN test "$TARGETARCH" = 'amd64' && export ARCH='64';     test "$TARGETARCH" = 'arm64' && export ARCH='aarch64';     test "$TARGETARCH" = 'ppc64le' && export ARCH='ppc64le';     curl -L "https://micromamba.snakepit.net/api/micromamba/linux-${ARCH}/${VERSION}" |     tar -xj -C "/tmp" "bin/micromamba"
+--> Using cache c354b8bd86ff89389568d6fb0820efd16c78ada1c3c3415aa9afc637d0f1341f
+--> c354b8bd86ff
+[2/3] STEP 1/17: FROM ubi9/ubi AS setup-mamba
+[2/3] STEP 2/17: ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
+--> Using cache 28d41ac8113ff67202f9fabced58b7dec8132f330fde237f4a39a5e6c6a098e7
+--> 28d41ac8113f
+[2/3] STEP 3/17: ENV ENV_NAME="base"
+--> Using cache 5150f477dff183cb0ba089db29d6ff1a6b8e9f35c93e2e565ed7c3cbec510bc6
+--> 5150f477dff1
+[2/3] STEP 4/17: ENV MAMBA_ROOT_PREFIX="/opt/conda"
+--> Using cache 2079a2160301ec6ae0d0ffaeb9ab078997cf970af99f8ba9cbf34dd48e5d6f3d
+--> 2079a2160301
+[2/3] STEP 5/17: ENV MAMBA_EXE="/bin/micromamba"
+--> Using cache 4eaf4bb36a9267855d5a85ed97cf440718bcf2ea2c471e947103328dc36ea352
+--> 4eaf4bb36a92
+[2/3] STEP 6/17: COPY --from=stage1 /etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-bundle.crt
+--> Using cache ac127aaebd80e94757a831efc559f8bf65e1d4294b8657da44185cdc9b1acf07
+--> ac127aaebd80
+[2/3] STEP 7/17: COPY --from=stage1 /tmp/bin/micromamba "$MAMBA_EXE"
+--> Using cache 0b9902ec6c9da352ab84c527e59d1fd5844e10ada03e8b2449bae79bc812ed37
+--> 0b9902ec6c9d
+[2/3] STEP 8/17: COPY --from=stage1 /opt/OpenBLAS /opt/OpenBLAS
+--> Using cache 88a6fa0bfb1d6c1723b330697c943f0f28c0363503e7ac94a0a65085eeaac056
+--> 88a6fa0bfb1d
+[2/3] STEP 9/17: ARG MAMBA_USER=mambauser
+--> Using cache 6fbf15ece534a79b0a37cc0a5638bb9c9ccba42903b2e7fbe47603ba5660d40a
+--> 6fbf15ece534
+[2/3] STEP 10/17: ARG MAMBA_USER_ID=1000
+--> Using cache 413345a8272bb69f0946272d8d43b1219f20b55fb06502a0aae14f3c932fefe6
+--> 413345a8272b
+[2/3] STEP 11/17: ARG MAMBA_USER_GID=1000
+--> Using cache a80005ea125d98dc32ddaccff2ab033d3c463aa59ae8a324b9915bfb0e53e4fe
+--> a80005ea125d
+[2/3] STEP 12/17: ENV MAMBA_USER=$MAMBA_USER
+--> Using cache a7ba11649d157e4e85fcdde8dd6b07d26341b85dee197e4c96001c80b16125e5
+--> a7ba11649d15
+[2/3] STEP 13/17: COPY --chmod=0755 _dockerfile_initialize_user_accounts.sh /usr/local/bin/_dockerfile_initialize_user_accounts.sh
+--> Using cache a9a99fe975be8c61b09cd37b39696f81fddc04cf4005c41f12bd2b18ba42c8db
+--> a9a99fe975be
+[2/3] STEP 14/17: COPY --chmod=0755 _dockerfile_setup_root_prefix.sh /usr/local/bin/_dockerfile_setup_root_prefix.sh
+--> Using cache deecdb9676be65bbc293f5d044b55b565e73dbd199f6f01dcb830b59c0ceaf88
+--> deecdb9676be
+[2/3] STEP 15/17: RUN /usr/local/bin/_dockerfile_initialize_user_accounts.sh &&     /usr/local/bin/_dockerfile_setup_root_prefix.sh
+--> Using cache 206122d34fa148c276a4eaab744a55c301963c06a46e10c7c8b78ee6c1ef3346
+--> 206122d34fa1
+[2/3] STEP 16/17: WORKDIR /tmp
+--> Using cache 71ba525f45dd1dbcd3cfa681c6bfcce2e6934d88d9c9ff48d2ae1695a3bcb404
+--> 71ba525f45dd
+[2/3] STEP 17/17: CMD ["/bin/bash"]
+--> Using cache f1f5c60f1261f989a6730a1e6841ea5f532911335d363bf5e7d0de61004d3b8c
+--> f1f5c60f1261
+[3/3] STEP 1/18: FROM f1f5c60f1261f989a6730a1e6841ea5f532911335d363bf5e7d0de61004d3b8c
+[3/3] STEP 2/18: ENV PYTHON_VERSION=3.10
+--> Using cache d216cb866e3d1b433cf63f528f19de7d851683f5aef8d7c3de65afc1d80c81c0
+--> d216cb866e3d
+[3/3] STEP 3/18: ENV CHANNEL=rocketce
+--> Using cache 186128ebe12bf4d61c7195847be986a11b888b857b8519daae6faa99ffffd84f
+--> 186128ebe12b
+[3/3] STEP 4/18: ENV OPENCE_VERSION=1.9.1
+--> Using cache 37976edf29d3c28b5c41e7f4f59553502b4e83cb5e29f109c70aeb9ab1951ffb
+--> 37976edf29d3
+[3/3] STEP 5/18: ENV LD_LIBRARY_PATH=/opt/OpenBLAS/lib
+--> Using cache f9fd3d3de6f5cfee5c57fb895364b1d0e2fbd1005874882cee0681a42cdc17cc
+--> f9fd3d3de6f5
+[3/3] STEP 6/18: ENV PKG_CONFIG_PATH=/opt/OpenBLAS/lib/pkgconfig
+--> Using cache 29d66ff137df455e7694c5c2a2021744f8686d38c2dea112b2a025aab7757a9e
+--> 29d66ff137df
+[3/3] STEP 7/18: RUN dnf update -y && dnf install -y cmake gcc-c++ gfortran libxcrypt-compat libxcrypt && dnf clean all
+--> Using cache ef6cee78cff9959dab0a454421bc50fc40bf17eb4fdab6b2909a91979fd02db5
+--> ef6cee78cff9
+[3/3] STEP 8/18: WORKDIR /work
+--> Using cache 75fbd4134e2f0d1d30c1c8d02c3b522b3a02699cebefab483722163a233ddd47
+--> 75fbd4134e2f
+[3/3] STEP 9/18: RUN micromamba config append channels ${CHANNEL}/label/${CHANNEL}-${OPENCE_VERSION} &&     micromamba config append channels ${CHANNEL} &&     micromamba config append channels defaults &&     micromamba install -y -n base python=${PYTHON_VERSION} git "pyarrow>=12.0.0" "grpcio<=1.60.0,>=1.49.1" langchain "pytorch-cpu>=1.11.0" altair=4 streamlit transformers && micromamba clean --all --yes
+--> Using cache dd32602e6abf6b2e1e8b612224470974b093b5c1f9de35d86f4f784fade5cdf7
+--> dd32602e6abf
+[3/3] STEP 10/18: RUN mkdir -p /opt/rh/gcc-toolset-11/root/usr && ln -s /usr/bin /opt/rh/gcc-toolset-11/root/usr/bin
+--> Using cache c4ff7a64f8ab8d9d789973bcf5dcbf467b4abe63592ae4bb6120ccb54951d8b3
+--> c4ff7a64f8ab
+[3/3] STEP 11/18: RUN /opt/conda/bin/pip install --upgrade 'streamlit' pymilvus httpx asyncio pypdf httpx asyncio pypdf "sentence-transformers>=3.1.1" accelerate #'grpcio<=1.60.0,>=1.49.1' 'ujson>=2.0.0' 'pyarrow>=12.0.0' 'minio>=7.0.0' 'scipy' 
+Requirement already satisfied: streamlit in /opt/conda/lib/python3.10/site-packages (1.24.1)
+Collecting streamlit
+  Downloading streamlit-1.40.1-py2.py3-none-any.whl.metadata (8.5 kB)
+Collecting pymilvus
+  Downloading pymilvus-2.4.9-py3-none-any.whl.metadata (5.6 kB)
+Collecting httpx
+  Downloading httpx-0.27.2-py3-none-any.whl.metadata (7.1 kB)
+Collecting asyncio
+  Downloading asyncio-3.4.3-py3-none-any.whl.metadata (1.7 kB)
+Collecting pypdf
+  Downloading pypdf-5.1.0-py3-none-any.whl.metadata (7.2 kB)
+Collecting sentence-transformers>=3.1.1
+  Downloading sentence_transformers-3.3.0-py3-none-any.whl.metadata (10 kB)
+Collecting accelerate
+  Downloading accelerate-1.1.1-py3-none-any.whl.metadata (19 kB)
+Requirement already satisfied: altair<6,>=4.0 in /opt/conda/lib/python3.10/site-packages (from streamlit) (4.2.2)
+Requirement already satisfied: blinker<2,>=1.0.0 in /opt/conda/lib/python3.10/site-packages (from streamlit) (1.6.2)
+Requirement already satisfied: cachetools<6,>=4.0 in /opt/conda/lib/python3.10/site-packages (from streamlit) (4.2.2)
+Requirement already satisfied: click<9,>=7.0 in /opt/conda/lib/python3.10/site-packages (from streamlit) (8.1.7)
+Requirement already satisfied: numpy<3,>=1.20 in /opt/conda/lib/python3.10/site-packages (from streamlit) (1.26.0)
+Requirement already satisfied: packaging<25,>=20 in /opt/conda/lib/python3.10/site-packages (from streamlit) (23.2)
+Requirement already satisfied: pandas<3,>=1.4.0 in /opt/conda/lib/python3.10/site-packages (from streamlit) (2.1.1)
+Requirement already satisfied: pillow<12,>=7.1.0 in /opt/conda/lib/python3.10/site-packages (from streamlit) (9.4.0)
+Requirement already satisfied: protobuf<6,>=3.20 in /opt/conda/lib/python3.10/site-packages (from streamlit) (4.21.12)
+Requirement already satisfied: pyarrow>=7.0 in /opt/conda/lib/python3.10/site-packages (from streamlit) (15.0.1)
+Requirement already satisfied: requests<3,>=2.27 in /opt/conda/lib/python3.10/site-packages (from streamlit) (2.31.0)
+Requirement already satisfied: rich<14,>=10.14.0 in /opt/conda/lib/python3.10/site-packages (from streamlit) (13.3.5)
+Requirement already satisfied: tenacity<10,>=8.1.0 in /opt/conda/lib/python3.10/site-packages (from streamlit) (8.2.2)
+Requirement already satisfied: toml<2,>=0.10.1 in /opt/conda/lib/python3.10/site-packages (from streamlit) (0.10.2)
+Requirement already satisfied: typing-extensions<5,>=4.3.0 in /opt/conda/lib/python3.10/site-packages (from streamlit) (4.7.1)
+Requirement already satisfied: gitpython!=3.1.19,<4,>=3.0.7 in /opt/conda/lib/python3.10/site-packages (from streamlit) (3.1.37)
+Collecting pydeck<1,>=0.8.0b4 (from streamlit)
+  Downloading pydeck-0.9.1-py2.py3-none-any.whl.metadata (4.1 kB)
+Requirement already satisfied: tornado<7,>=6.0.3 in /opt/conda/lib/python3.10/site-packages (from streamlit) (6.3.3)
+Requirement already satisfied: watchdog<7,>=2.1.5 in /opt/conda/lib/python3.10/site-packages (from streamlit) (2.1.6)
+Collecting setuptools>69 (from pymilvus)
+  Downloading setuptools-75.4.0-py3-none-any.whl.metadata (6.8 kB)
+Requirement already satisfied: grpcio>=1.49.1 in /opt/conda/lib/python3.10/site-packages (from pymilvus) (1.54.3)
+Collecting environs<=9.5.0 (from pymilvus)
+  Downloading environs-9.5.0-py2.py3-none-any.whl.metadata (14 kB)
+Collecting ujson>=2.0.0 (from pymilvus)
+  Downloading ujson-5.10.0.tar.gz (7.2 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.2/7.2 MB 147.4 MB/s eta 0:00:00
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+INFO: pip is looking at multiple versions of pymilvus to determine which version is compatible with other requirements. This could take a while.
+Collecting pymilvus
+  Downloading pymilvus-2.4.8-py3-none-any.whl.metadata (5.6 kB)
+  Downloading pymilvus-2.4.7-py3-none-any.whl.metadata (5.6 kB)
+  Downloading pymilvus-2.4.6-py3-none-any.whl.metadata (5.6 kB)
+  Downloading pymilvus-2.4.5-py3-none-any.whl.metadata (5.6 kB)
+  Downloading pymilvus-2.4.4-py3-none-any.whl.metadata (5.4 kB)
+Requirement already satisfied: setuptools>=67 in /opt/conda/lib/python3.10/site-packages (from pymilvus) (68.0.0)
+  Downloading pymilvus-2.4.3-py3-none-any.whl.metadata (5.3 kB)
+  Downloading pymilvus-2.4.2-py3-none-any.whl.metadata (5.3 kB)
+INFO: pip is still looking at multiple versions of pymilvus to determine which version is compatible with other requirements. This could take a while.
+  Downloading pymilvus-2.4.1-py3-none-any.whl.metadata (5.1 kB)
+Collecting minio>=7.0.0 (from pymilvus)
+  Downloading minio-7.2.10-py3-none-any.whl.metadata (6.5 kB)
+Collecting azure-storage-blob (from pymilvus)
+  Downloading azure_storage_blob-12.23.1-py3-none-any.whl.metadata (26 kB)
+Requirement already satisfied: scipy in /opt/conda/lib/python3.10/site-packages (from pymilvus) (1.11.3)
+Requirement already satisfied: anyio in /opt/conda/lib/python3.10/site-packages (from httpx) (3.5.0)
+Requirement already satisfied: certifi in /opt/conda/lib/python3.10/site-packages (from httpx) (2023.11.17)
+Collecting httpcore==1.* (from httpx)
+  Downloading httpcore-1.0.6-py3-none-any.whl.metadata (21 kB)
+Requirement already satisfied: idna in /opt/conda/lib/python3.10/site-packages (from httpx) (3.4)
+Requirement already satisfied: sniffio in /opt/conda/lib/python3.10/site-packages (from httpx) (1.2.0)
+Collecting h11<0.15,>=0.13 (from httpcore==1.*->httpx)
+  Downloading h11-0.14.0-py3-none-any.whl.metadata (8.2 kB)
+Collecting transformers<5.0.0,>=4.41.0 (from sentence-transformers>=3.1.1)
+  Downloading transformers-4.46.2-py3-none-any.whl.metadata (44 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 44.1/44.1 kB 35.4 MB/s eta 0:00:00
+Requirement already satisfied: tqdm in /opt/conda/lib/python3.10/site-packages (from sentence-transformers>=3.1.1) (4.65.0)
+Requirement already satisfied: torch>=1.11.0 in /opt/conda/lib/python3.10/site-packages (from sentence-transformers>=3.1.1) (2.1.2)
+Collecting scikit-learn (from sentence-transformers>=3.1.1)
+  Downloading scikit_learn-1.5.2.tar.gz (7.0 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.0/7.0 MB 156.1 MB/s eta 0:00:00
+  Installing build dependencies: started
+  Installing build dependencies: still running...
+  Installing build dependencies: still running...
+  Installing build dependencies: still running...
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Installing backend dependencies: started
+  Installing backend dependencies: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): still running...
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Requirement already satisfied: huggingface-hub>=0.20.0 in /opt/conda/lib/python3.10/site-packages (from sentence-transformers>=3.1.1) (0.20.0)
+Collecting huggingface-hub>=0.20.0 (from sentence-transformers>=3.1.1)
+  Downloading huggingface_hub-0.26.2-py3-none-any.whl.metadata (13 kB)
+Requirement already satisfied: psutil in /opt/conda/lib/python3.10/site-packages (from accelerate) (5.9.0)
+Requirement already satisfied: pyyaml in /opt/conda/lib/python3.10/site-packages (from accelerate) (6.0.1)
+Collecting safetensors>=0.4.3 (from accelerate)
+  Downloading safetensors-0.4.5-cp310-cp310-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl.metadata (3.8 kB)
+Requirement already satisfied: entrypoints in /opt/conda/lib/python3.10/site-packages (from altair<6,>=4.0->streamlit) (0.4)
+Requirement already satisfied: jinja2 in /opt/conda/lib/python3.10/site-packages (from altair<6,>=4.0->streamlit) (3.1.2)
+Requirement already satisfied: jsonschema>=3.0 in /opt/conda/lib/python3.10/site-packages (from altair<6,>=4.0->streamlit) (4.19.2)
+Requirement already satisfied: toolz in /opt/conda/lib/python3.10/site-packages (from altair<6,>=4.0->streamlit) (0.12.0)
+Requirement already satisfied: marshmallow>=3.0.0 in /opt/conda/lib/python3.10/site-packages (from environs<=9.5.0->pymilvus) (3.19.0)
+Collecting python-dotenv (from environs<=9.5.0->pymilvus)
+  Downloading python_dotenv-1.0.1-py3-none-any.whl.metadata (23 kB)
+Requirement already satisfied: gitdb<5,>=4.0.1 in /opt/conda/lib/python3.10/site-packages (from gitpython!=3.1.19,<4,>=3.0.7->streamlit) (4.0.7)
+Requirement already satisfied: filelock in /opt/conda/lib/python3.10/site-packages (from huggingface-hub>=0.20.0->sentence-transformers>=3.1.1) (3.9.0)
+Requirement already satisfied: fsspec>=2023.5.0 in /opt/conda/lib/python3.10/site-packages (from huggingface-hub>=0.20.0->sentence-transformers>=3.1.1) (2023.10.0)
+Requirement already satisfied: urllib3 in /opt/conda/lib/python3.10/site-packages (from minio>=7.0.0->pymilvus) (1.26.18)
+Collecting argon2-cffi (from minio>=7.0.0->pymilvus)
+  Downloading argon2_cffi-23.1.0-py3-none-any.whl.metadata (5.2 kB)
+Collecting pycryptodome (from minio>=7.0.0->pymilvus)
+  Downloading pycryptodome-3.21.0.tar.gz (4.8 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.8/4.8 MB 191.3 MB/s eta 0:00:00
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Requirement already satisfied: python-dateutil>=2.8.2 in /opt/conda/lib/python3.10/site-packages (from pandas<3,>=1.4.0->streamlit) (2.8.2)
+Requirement already satisfied: pytz>=2020.1 in /opt/conda/lib/python3.10/site-packages (from pandas<3,>=1.4.0->streamlit) (2023.3.post1)
+Requirement already satisfied: tzdata>=2022.1 in /opt/conda/lib/python3.10/site-packages (from pandas<3,>=1.4.0->streamlit) (2023.3)
+Requirement already satisfied: charset-normalizer<4,>=2 in /opt/conda/lib/python3.10/site-packages (from requests<3,>=2.27->streamlit) (3.3.2)
+Requirement already satisfied: markdown-it-py<3.0.0,>=2.2.0 in /opt/conda/lib/python3.10/site-packages (from rich<14,>=10.14.0->streamlit) (2.2.0)
+Requirement already satisfied: pygments<3.0.0,>=2.13.0 in /opt/conda/lib/python3.10/site-packages (from rich<14,>=10.14.0->streamlit) (2.15.1)
+Requirement already satisfied: sympy in /opt/conda/lib/python3.10/site-packages (from torch>=1.11.0->sentence-transformers>=3.1.1) (1.11.1)
+Requirement already satisfied: networkx in /opt/conda/lib/python3.10/site-packages (from torch>=1.11.0->sentence-transformers>=3.1.1) (2.8.4)
+Requirement already satisfied: regex!=2019.12.17 in /opt/conda/lib/python3.10/site-packages (from transformers<5.0.0,>=4.41.0->sentence-transformers>=3.1.1) (2023.10.3)
+Collecting tokenizers<0.21,>=0.20 (from transformers<5.0.0,>=4.41.0->sentence-transformers>=3.1.1)
+  Downloading tokenizers-0.20.3-cp310-cp310-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl.metadata (6.7 kB)
+Collecting azure-core>=1.30.0 (from azure-storage-blob->pymilvus)
+  Downloading azure_core-1.32.0-py3-none-any.whl.metadata (39 kB)
+Requirement already satisfied: cryptography>=2.1.4 in /opt/conda/lib/python3.10/site-packages (from azure-storage-blob->pymilvus) (41.0.4)
+Collecting isodate>=0.6.1 (from azure-storage-blob->pymilvus)
+  Downloading isodate-0.7.2-py3-none-any.whl.metadata (11 kB)
+Collecting joblib>=1.2.0 (from scikit-learn->sentence-transformers>=3.1.1)
+  Downloading joblib-1.4.2-py3-none-any.whl.metadata (5.4 kB)
+Collecting threadpoolctl>=3.1.0 (from scikit-learn->sentence-transformers>=3.1.1)
+  Downloading threadpoolctl-3.5.0-py3-none-any.whl.metadata (13 kB)
+Requirement already satisfied: six>=1.11.0 in /opt/conda/lib/python3.10/site-packages (from azure-core>=1.30.0->azure-storage-blob->pymilvus) (1.16.0)
+Requirement already satisfied: cffi>=1.12 in /opt/conda/lib/python3.10/site-packages (from cryptography>=2.1.4->azure-storage-blob->pymilvus) (1.15.1)
+Requirement already satisfied: smmap<5,>=3.0.1 in /opt/conda/lib/python3.10/site-packages (from gitdb<5,>=4.0.1->gitpython!=3.1.19,<4,>=3.0.7->streamlit) (4.0.0)
+Requirement already satisfied: MarkupSafe>=2.0 in /opt/conda/lib/python3.10/site-packages (from jinja2->altair<6,>=4.0->streamlit) (2.1.1)
+Requirement already satisfied: attrs>=22.2.0 in /opt/conda/lib/python3.10/site-packages (from jsonschema>=3.0->altair<6,>=4.0->streamlit) (23.1.0)
+Requirement already satisfied: jsonschema-specifications>=2023.03.6 in /opt/conda/lib/python3.10/site-packages (from jsonschema>=3.0->altair<6,>=4.0->streamlit) (2023.7.1)
+Requirement already satisfied: referencing>=0.28.4 in /opt/conda/lib/python3.10/site-packages (from jsonschema>=3.0->altair<6,>=4.0->streamlit) (0.30.2)
+Requirement already satisfied: rpds-py>=0.7.1 in /opt/conda/lib/python3.10/site-packages (from jsonschema>=3.0->altair<6,>=4.0->streamlit) (0.10.6)
+Requirement already satisfied: mdurl~=0.1 in /opt/conda/lib/python3.10/site-packages (from markdown-it-py<3.0.0,>=2.2.0->rich<14,>=10.14.0->streamlit) (0.1.0)
+Collecting argon2-cffi-bindings (from argon2-cffi->minio>=7.0.0->pymilvus)
+  Downloading argon2-cffi-bindings-21.2.0.tar.gz (1.8 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.8/1.8 MB 179.9 MB/s eta 0:00:00
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Requirement already satisfied: mpmath>=0.19 in /opt/conda/lib/python3.10/site-packages (from sympy->torch>=1.11.0->sentence-transformers>=3.1.1) (1.3.0)
+Requirement already satisfied: pycparser in /opt/conda/lib/python3.10/site-packages (from cffi>=1.12->cryptography>=2.1.4->azure-storage-blob->pymilvus) (2.21)
+Downloading streamlit-1.40.1-py2.py3-none-any.whl (8.6 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 8.6/8.6 MB 163.8 MB/s eta 0:00:00
+Downloading pymilvus-2.4.1-py3-none-any.whl (191 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 191.8/191.8 kB 116.2 MB/s eta 0:00:00
+Downloading httpx-0.27.2-py3-none-any.whl (76 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 76.4/76.4 kB 58.7 MB/s eta 0:00:00
+Downloading httpcore-1.0.6-py3-none-any.whl (78 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 78.0/78.0 kB 66.1 MB/s eta 0:00:00
+Downloading asyncio-3.4.3-py3-none-any.whl (101 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 101.8/101.8 kB 84.5 MB/s eta 0:00:00
+Downloading pypdf-5.1.0-py3-none-any.whl (297 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 298.0/298.0 kB 170.4 MB/s eta 0:00:00
+Downloading sentence_transformers-3.3.0-py3-none-any.whl (268 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 268.7/268.7 kB 133.9 MB/s eta 0:00:00
+Downloading accelerate-1.1.1-py3-none-any.whl (333 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 333.2/333.2 kB 180.6 MB/s eta 0:00:00
+Downloading environs-9.5.0-py2.py3-none-any.whl (12 kB)
+Downloading huggingface_hub-0.26.2-py3-none-any.whl (447 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 447.5/447.5 kB 205.9 MB/s eta 0:00:00
+Downloading minio-7.2.10-py3-none-any.whl (93 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 93.9/93.9 kB 77.5 MB/s eta 0:00:00
+Downloading pydeck-0.9.1-py2.py3-none-any.whl (6.9 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.9/6.9 MB 219.7 MB/s eta 0:00:00
+Downloading safetensors-0.4.5-cp310-cp310-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl (478 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 478.0/478.0 kB 190.2 MB/s eta 0:00:00
+Downloading transformers-4.46.2-py3-none-any.whl (10.0 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.0/10.0 MB 209.2 MB/s eta 0:00:00
+Downloading azure_storage_blob-12.23.1-py3-none-any.whl (405 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 405.6/405.6 kB 155.9 MB/s eta 0:00:00
+Downloading azure_core-1.32.0-py3-none-any.whl (198 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 198.9/198.9 kB 130.5 MB/s eta 0:00:00
+Downloading h11-0.14.0-py3-none-any.whl (58 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 58.3/58.3 kB 52.3 MB/s eta 0:00:00
+Downloading isodate-0.7.2-py3-none-any.whl (22 kB)
+Downloading joblib-1.4.2-py3-none-any.whl (301 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 301.8/301.8 kB 168.1 MB/s eta 0:00:00
+Downloading threadpoolctl-3.5.0-py3-none-any.whl (18 kB)
+Downloading tokenizers-0.20.3-cp310-cp310-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl (3.1 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.1/3.1 MB 221.3 MB/s eta 0:00:00
+Downloading argon2_cffi-23.1.0-py3-none-any.whl (15 kB)
+Downloading python_dotenv-1.0.1-py3-none-any.whl (19 kB)
+Building wheels for collected packages: ujson, scikit-learn, pycryptodome, argon2-cffi-bindings
+  Building wheel for ujson (pyproject.toml): started
+  Building wheel for ujson (pyproject.toml): finished with status 'done'
+  Created wheel for ujson: filename=ujson-5.10.0-cp310-cp310-linux_ppc64le.whl size=55835 sha256=1f124b19f7776b5cc3118867466f7bd26099e3cbe43357a68d93bd9d7bf4dbb3
+  Stored in directory: /root/.cache/pip/wheels/44/71/bf/0e6dd559ca520e54995e79f41d6ae7dcde6c1fce1f921a5811
+  Building wheel for scikit-learn (pyproject.toml): started
+  Building wheel for scikit-learn (pyproject.toml): finished with status 'done'
+  Created wheel for scikit-learn: filename=scikit_learn-1.5.2-cp310-cp310-linux_ppc64le.whl size=13589101 sha256=433f5d99b2f1047d61a00701c2340a91c634d33fcd27b2b2466dfde134b731ff
+  Stored in directory: /root/.cache/pip/wheels/61/d3/8d/33363467a177f63401b2a73f89069bee875cd5c8d45f640125
+  Building wheel for pycryptodome (pyproject.toml): started
+  Building wheel for pycryptodome (pyproject.toml): finished with status 'done'
+  Created wheel for pycryptodome: filename=pycryptodome-3.21.0-cp36-abi3-linux_ppc64le.whl size=1701822 sha256=c47ffdc0f785b20cf9ed4287ca17d5deb8fb2381ce94d9afe83caff699d1adc7
+  Stored in directory: /root/.cache/pip/wheels/91/b2/e5/faac08d5eb6fd3800698ed1b79d720a581aad5f72ce4f9fb3b
+  Building wheel for argon2-cffi-bindings (pyproject.toml): started
+  Building wheel for argon2-cffi-bindings (pyproject.toml): finished with status 'done'
+  Created wheel for argon2-cffi-bindings: filename=argon2_cffi_bindings-21.2.0-cp310-abi3-linux_ppc64le.whl size=33896 sha256=e857c80c695b0d549cff59535dad5f9d9e509ec3b25a11e80dd217cc3669b3c2
+  Stored in directory: /root/.cache/pip/wheels/e3/4e/1c/ba50f263e38b7e87cdf053e3df9ae5fe1f5368fb604985eddf
+Successfully built ujson scikit-learn pycryptodome argon2-cffi-bindings
+Installing collected packages: asyncio, ujson, threadpoolctl, safetensors, python-dotenv, pypdf, pycryptodome, joblib, isodate, h11, scikit-learn, pydeck, huggingface-hub, httpcore, environs, azure-core, argon2-cffi-bindings, tokenizers, httpx, azure-storage-blob, argon2-cffi, accelerate, transformers, minio, streamlit, sentence-transformers, pymilvus
+  Attempting uninstall: safetensors
+    Found existing installation: safetensors 0.4.1
+    Uninstalling safetensors-0.4.1:
+      Successfully uninstalled safetensors-0.4.1
+  Attempting uninstall: pydeck
+    Found existing installation: pydeck 0.7.1
+    Uninstalling pydeck-0.7.1:
+      Successfully uninstalled pydeck-0.7.1
+  Attempting uninstall: huggingface-hub
+    Found existing installation: huggingface-hub 0.20.0
+    Uninstalling huggingface-hub-0.20.0:
+      Successfully uninstalled huggingface-hub-0.20.0
+  Attempting uninstall: tokenizers
+    Found existing installation: tokenizers 0.15.2
+    Uninstalling tokenizers-0.15.2:
+      Successfully uninstalled tokenizers-0.15.2
+  Attempting uninstall: transformers
+    Found existing installation: transformers 4.38.0
+    Uninstalling transformers-4.38.0:
+      Successfully uninstalled transformers-4.38.0
+  Attempting uninstall: streamlit
+    Found existing installation: streamlit 1.24.1
+    Uninstalling streamlit-1.24.1:
+      Successfully uninstalled streamlit-1.24.1
+Successfully installed accelerate-1.1.1 argon2-cffi-23.1.0 argon2-cffi-bindings-21.2.0 asyncio-3.4.3 azure-core-1.32.0 azure-storage-blob-12.23.1 environs-9.5.0 h11-0.14.0 httpcore-1.0.6 httpx-0.27.2 huggingface-hub-0.26.2 isodate-0.7.2 joblib-1.4.2 minio-7.2.10 pycryptodome-3.21.0 pydeck-0.9.1 pymilvus-2.4.1 pypdf-5.1.0 python-dotenv-1.0.1 safetensors-0.4.5 scikit-learn-1.5.2 sentence-transformers-3.3.0 streamlit-1.40.1 threadpoolctl-3.5.0 tokenizers-0.20.3 transformers-4.46.2 ujson-5.10.0
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+--> 26eaaf5224f7
+[3/3] STEP 12/18: RUN /opt/conda/bin/pip cache purge
+Files removed: 295
+--> b298a9439663
+[3/3] STEP 13/18: RUN dnf erase -y cmake gcc-c++ gfortran && dnf clean all
+Updating Subscription Management repositories.
+Unable to read consumer identity
+
+This system is not registered with an entitlement server. You can use subscription-manager to register.
+
+Dependencies resolved.
+=========================================================================================
+ Package                      Arch     Version               Repository              Size
+=========================================================================================
+Removing:
+ cmake                        ppc64le  3.26.5-2.el9          @ubi-9-appstream-rpms   33 M
+ gcc-c++                      ppc64le  11.5.0-2.el9          @ubi-9-appstream-rpms   32 M
+ gcc-gfortran                 ppc64le  11.5.0-2.el9          @ubi-9-appstream-rpms   32 M
+Removing unused dependencies:
+ binutils                     ppc64le  2.35.2-54.el9         @ubi-9-baseos-rpms      28 M
+ binutils-gold                ppc64le  2.35.2-54.el9         @ubi-9-baseos-rpms     3.6 M
+ cmake-data                   noarch   3.26.5-2.el9          @ubi-9-appstream-rpms  7.7 M
+ cmake-filesystem             ppc64le  3.26.5-2.el9          @ubi-9-appstream-rpms    0  
+ cmake-rpm-macros             noarch   3.26.5-2.el9          @ubi-9-appstream-rpms  7.7 k
+ cpp                          ppc64le  11.5.0-2.el9          @ubi-9-appstream-rpms   28 M
+ elfutils-debuginfod-client   ppc64le  0.191-4.el9           @ubi-9-baseos-rpms     140 k
+ emacs-filesystem             noarch   1:27.2-10.el9_4       @ubi-9-appstream-rpms    0  
+ gcc                          ppc64le  11.5.0-2.el9          @ubi-9-appstream-rpms   77 M
+ glibc-devel                  ppc64le  2.34-125.el9_5.1      @ubi-9-appstream-rpms  2.4 M
+ kernel-headers               ppc64le  5.14.0-503.11.1.el9_5 @ubi-9-appstream-rpms  6.0 M
+ libasan                      ppc64le  11.5.0-2.el9          @ubi-9-appstream-rpms  1.5 M
+ libatomic                    ppc64le  11.5.0-2.el9          @ubi-9-baseos-rpms      68 k
+ libgfortran                  ppc64le  11.5.0-2.el9          @ubi-9-baseos-rpms     2.1 M
+ libmpc                       ppc64le  1.2.1-4.el9           @ubi-9-appstream-rpms  215 k
+ libpkgconf                   ppc64le  1.7.3-10.el9          @ubi-9-baseos-rpms     133 k
+ libquadmath                  ppc64le  11.5.0-2.el9          @ubi-9-baseos-rpms     362 k
+ libquadmath-devel            ppc64le  11.5.0-2.el9          @ubi-9-appstream-rpms   21 k
+ libstdc++-devel              ppc64le  11.5.0-2.el9          @ubi-9-appstream-rpms   13 M
+ libubsan                     ppc64le  11.5.0-2.el9          @ubi-9-appstream-rpms  538 k
+ libuv                        ppc64le  1:1.42.0-2.el9_4      @ubi-9-appstream-rpms  455 k
+ libxcrypt-devel              ppc64le  4.4.18-3.el9          @ubi-9-appstream-rpms   30 k
+ make                         ppc64le  1:4.3-8.el9           @ubi-9-baseos-rpms     1.7 M
+ pkgconf                      ppc64le  1.7.3-10.el9          @ubi-9-baseos-rpms     100 k
+ pkgconf-m4                   noarch   1.7.3-10.el9          @ubi-9-baseos-rpms      14 k
+ pkgconf-pkg-config           ppc64le  1.7.3-10.el9          @ubi-9-baseos-rpms     1.2 k
+ vim-filesystem               noarch   2:8.2.2637-21.el9     @ubi-9-baseos-rpms      40  
+
+Transaction Summary
+=========================================================================================
+Remove  30 Packages
+
+Freed space: 269 M
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                        1/1 
+  Erasing          : gcc-gfortran-11.5.0-2.el9.ppc64le                     1/30 
+  Erasing          : cmake-3.26.5-2.el9.ppc64le                            2/30 
+  Erasing          : cmake-data-3.26.5-2.el9.noarch                        3/30 
+  Erasing          : libquadmath-devel-11.5.0-2.el9.ppc64le                4/30 
+  Erasing          : gcc-c++-11.5.0-2.el9.ppc64le                          5/30 
+  Erasing          : gcc-11.5.0-2.el9.ppc64le                              6/30 
+  Erasing          : glibc-devel-2.34-125.el9_5.1.ppc64le                  7/30 
+  Running scriptlet: binutils-2.35.2-54.el9.ppc64le                        8/30 
+  Erasing          : binutils-2.35.2-54.el9.ppc64le                        8/30 
+  Running scriptlet: binutils-2.35.2-54.el9.ppc64le                        8/30 
+  Erasing          : libgfortran-11.5.0-2.el9.ppc64le                      9/30 
+  Erasing          : libxcrypt-devel-4.4.18-3.el9.ppc64le                 10/30 
+  Erasing          : pkgconf-pkg-config-1.7.3-10.el9.ppc64le              11/30 
+  Erasing          : pkgconf-m4-1.7.3-10.el9.noarch                       12/30 
+  Erasing          : kernel-headers-5.14.0-503.11.1.el9_5.ppc64le         13/30 
+  Erasing          : libstdc++-devel-11.5.0-2.el9.ppc64le                 14/30 
+  Erasing          : cmake-filesystem-3.26.5-2.el9.ppc64le                15/30 
+  Erasing          : cmake-rpm-macros-3.26.5-2.el9.noarch                 16/30 
+  Erasing          : emacs-filesystem-1:27.2-10.el9_4.noarch              17/30 
+  Erasing          : vim-filesystem-2:8.2.2637-21.el9.noarch              18/30 
+  Erasing          : pkgconf-1.7.3-10.el9.ppc64le                         19/30 
+  Erasing          : cpp-11.5.0-2.el9.ppc64le                             20/30 
+  Erasing          : libmpc-1.2.1-4.el9.ppc64le                           21/30 
+  Erasing          : libpkgconf-1.7.3-10.el9.ppc64le                      22/30 
+  Erasing          : libquadmath-11.5.0-2.el9.ppc64le                     23/30 
+  Erasing          : binutils-gold-2.35.2-54.el9.ppc64le                  24/30 
+  Erasing          : elfutils-debuginfod-client-0.191-4.el9.ppc64le       25/30 
+  Erasing          : libasan-11.5.0-2.el9.ppc64le                         26/30 
+  Erasing          : libatomic-11.5.0-2.el9.ppc64le                       27/30 
+  Erasing          : libubsan-11.5.0-2.el9.ppc64le                        28/30 
+  Erasing          : make-1:4.3-8.el9.ppc64le                             29/30 
+  Erasing          : libuv-1:1.42.0-2.el9_4.ppc64le                       30/30 
+  Verifying        : binutils-2.35.2-54.el9.ppc64le                        1/30 
+  Verifying        : binutils-gold-2.35.2-54.el9.ppc64le                   2/30 
+  Verifying        : cmake-3.26.5-2.el9.ppc64le                            3/30 
+  Verifying        : cmake-data-3.26.5-2.el9.noarch                        4/30 
+  Verifying        : cmake-filesystem-3.26.5-2.el9.ppc64le                 5/30 
+  Verifying        : cmake-rpm-macros-3.26.5-2.el9.noarch                  6/30 
+  Verifying        : cpp-11.5.0-2.el9.ppc64le                              7/30 
+  Verifying        : elfutils-debuginfod-client-0.191-4.el9.ppc64le        8/30 
+  Verifying        : emacs-filesystem-1:27.2-10.el9_4.noarch               9/30 
+  Verifying        : gcc-11.5.0-2.el9.ppc64le                             10/30 
+  Verifying        : gcc-c++-11.5.0-2.el9.ppc64le                         11/30 
+  Verifying        : gcc-gfortran-11.5.0-2.el9.ppc64le                    12/30 
+  Verifying        : glibc-devel-2.34-125.el9_5.1.ppc64le                 13/30 
+  Verifying        : kernel-headers-5.14.0-503.11.1.el9_5.ppc64le         14/30 
+  Verifying        : libasan-11.5.0-2.el9.ppc64le                         15/30 
+  Verifying        : libatomic-11.5.0-2.el9.ppc64le                       16/30 
+  Verifying        : libgfortran-11.5.0-2.el9.ppc64le                     17/30 
+  Verifying        : libmpc-1.2.1-4.el9.ppc64le                           18/30 
+  Verifying        : libpkgconf-1.7.3-10.el9.ppc64le                      19/30 
+  Verifying        : libquadmath-11.5.0-2.el9.ppc64le                     20/30 
+  Verifying        : libquadmath-devel-11.5.0-2.el9.ppc64le               21/30 
+  Verifying        : libstdc++-devel-11.5.0-2.el9.ppc64le                 22/30 
+  Verifying        : libubsan-11.5.0-2.el9.ppc64le                        23/30 
+  Verifying        : libuv-1:1.42.0-2.el9_4.ppc64le                       24/30 
+  Verifying        : libxcrypt-devel-4.4.18-3.el9.ppc64le                 25/30 
+  Verifying        : make-1:4.3-8.el9.ppc64le                             26/30 
+  Verifying        : pkgconf-1.7.3-10.el9.ppc64le                         27/30 
+  Verifying        : pkgconf-m4-1.7.3-10.el9.noarch                       28/30 
+  Verifying        : pkgconf-pkg-config-1.7.3-10.el9.ppc64le              29/30 
+  Verifying        : vim-filesystem-2:8.2.2637-21.el9.noarch              30/30 
+Installed products updated.
+
+Removed:
+  binutils-2.35.2-54.el9.ppc64le                                                
+  binutils-gold-2.35.2-54.el9.ppc64le                                           
+  cmake-3.26.5-2.el9.ppc64le                                                    
+  cmake-data-3.26.5-2.el9.noarch                                                
+  cmake-filesystem-3.26.5-2.el9.ppc64le                                         
+  cmake-rpm-macros-3.26.5-2.el9.noarch                                          
+  cpp-11.5.0-2.el9.ppc64le                                                      
+  elfutils-debuginfod-client-0.191-4.el9.ppc64le                                
+  emacs-filesystem-1:27.2-10.el9_4.noarch                                       
+  gcc-11.5.0-2.el9.ppc64le                                                      
+  gcc-c++-11.5.0-2.el9.ppc64le                                                  
+  gcc-gfortran-11.5.0-2.el9.ppc64le                                             
+  glibc-devel-2.34-125.el9_5.1.ppc64le                                          
+  kernel-headers-5.14.0-503.11.1.el9_5.ppc64le                                  
+  libasan-11.5.0-2.el9.ppc64le                                                  
+  libatomic-11.5.0-2.el9.ppc64le                                                
+  libgfortran-11.5.0-2.el9.ppc64le                                              
+  libmpc-1.2.1-4.el9.ppc64le                                                    
+  libpkgconf-1.7.3-10.el9.ppc64le                                               
+  libquadmath-11.5.0-2.el9.ppc64le                                              
+  libquadmath-devel-11.5.0-2.el9.ppc64le                                        
+  libstdc++-devel-11.5.0-2.el9.ppc64le                                          
+  libubsan-11.5.0-2.el9.ppc64le                                                 
+  libuv-1:1.42.0-2.el9_4.ppc64le                                                
+  libxcrypt-devel-4.4.18-3.el9.ppc64le                                          
+  make-1:4.3-8.el9.ppc64le                                                      
+  pkgconf-1.7.3-10.el9.ppc64le                                                  
+  pkgconf-m4-1.7.3-10.el9.noarch                                                
+  pkgconf-pkg-config-1.7.3-10.el9.ppc64le                                       
+  vim-filesystem-2:8.2.2637-21.el9.noarch                                       
+
+Complete!
+Updating Subscription Management repositories.
+Unable to read consumer identity
+
+This system is not registered with an entitlement server. You can use subscription-manager to register.
+
+0 files removed
+--> 49794c9fc9f6
+[3/3] STEP 14/18: COPY streamlit.py /work/
+--> 7a437d36c739
+[3/3] STEP 15/18: COPY MiniLM /work/
+--> 2820800882f7
+[3/3] STEP 16/18: USER 1001
+--> 9ea0cb641268
+[3/3] STEP 17/18: EXPOSE 8501
+--> e0d0ddf90f01
+[3/3] STEP 18/18: CMD [ "/opt/conda/bin/streamlit" , "run" , "/work/streamlit.py" ]
+[3/3] COMMIT quay.io/daniel_casali/pdf_rag_milvus:latest-offline-conda
+--> 3ef9dbca0558
+Successfully tagged quay.io/daniel_casali/pdf_rag_milvus:latest-offline-conda
+3ef9dbca0558da792c35860b65645d051fcf4e57bf729b23b4e9a6aec481ab63
+[1/3] STEP 1/6: FROM ubi9/ubi AS stage1
+[1/3] STEP 2/6: ARG VERSION=0.27.0
+--> Using cache eeb2bc946f92b93c264da706704c9a14d302d002ed166a548291957b1aada686
+--> eeb2bc946f92
+[1/3] STEP 3/6: RUN dnf update -y &&     dnf install -y git gcc-c++     bzip2     ca-certificates     ca-certificates     && dnf clean all
+--> Using cache d0cf4957b899a63502b0bf595e04c716ea33ef2fe5d94953a64384815bd6f7bd
+--> d0cf4957b899
+[1/3] STEP 4/6: RUN git clone --recursive https://github.com/DanielCasali/OpenBLAS.git && cd OpenBLAS &&     make -j$(nproc --all) TARGET=POWER10 USE_THREAD=1 &&     make PREFIX=/opt/OpenBLAS install &&     rm -rf OpenBLAS &&     cd /
+--> Using cache 919a83921c6ffd7b5469d652aaff614966688c43d8ae7ecd106b5f4c353f9d43
+--> 919a83921c6f
+[1/3] STEP 5/6: ARG TARGETARCH
+--> Using cache 539221d57b7814205609e663d62ed5815509e68d15aa1df780a1581794c5a763
+--> 539221d57b78
+[1/3] STEP 6/6: RUN test "$TARGETARCH" = 'amd64' && export ARCH='64';     test "$TARGETARCH" = 'arm64' && export ARCH='aarch64';     test "$TARGETARCH" = 'ppc64le' && export ARCH='ppc64le';     curl -L "https://micromamba.snakepit.net/api/micromamba/linux-${ARCH}/${VERSION}" |     tar -xj -C "/tmp" "bin/micromamba"
+--> Using cache c354b8bd86ff89389568d6fb0820efd16c78ada1c3c3415aa9afc637d0f1341f
+--> c354b8bd86ff
+[2/3] STEP 1/17: FROM ubi9/ubi AS setup-mamba
+[2/3] STEP 2/17: ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
+--> Using cache 28d41ac8113ff67202f9fabced58b7dec8132f330fde237f4a39a5e6c6a098e7
+--> 28d41ac8113f
+[2/3] STEP 3/17: ENV ENV_NAME="base"
+--> Using cache 5150f477dff183cb0ba089db29d6ff1a6b8e9f35c93e2e565ed7c3cbec510bc6
+--> 5150f477dff1
+[2/3] STEP 4/17: ENV MAMBA_ROOT_PREFIX="/opt/conda"
+--> Using cache 2079a2160301ec6ae0d0ffaeb9ab078997cf970af99f8ba9cbf34dd48e5d6f3d
+--> 2079a2160301
+[2/3] STEP 5/17: ENV MAMBA_EXE="/bin/micromamba"
+--> Using cache 4eaf4bb36a9267855d5a85ed97cf440718bcf2ea2c471e947103328dc36ea352
+--> 4eaf4bb36a92
+[2/3] STEP 6/17: COPY --from=stage1 /etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-bundle.crt
+--> Using cache ac127aaebd80e94757a831efc559f8bf65e1d4294b8657da44185cdc9b1acf07
+--> ac127aaebd80
+[2/3] STEP 7/17: COPY --from=stage1 /tmp/bin/micromamba "$MAMBA_EXE"
+--> Using cache 0b9902ec6c9da352ab84c527e59d1fd5844e10ada03e8b2449bae79bc812ed37
+--> 0b9902ec6c9d
+[2/3] STEP 8/17: COPY --from=stage1 /opt/OpenBLAS /opt/OpenBLAS
+--> Using cache 88a6fa0bfb1d6c1723b330697c943f0f28c0363503e7ac94a0a65085eeaac056
+--> 88a6fa0bfb1d
+[2/3] STEP 9/17: ARG MAMBA_USER=mambauser
+--> Using cache 6fbf15ece534a79b0a37cc0a5638bb9c9ccba42903b2e7fbe47603ba5660d40a
+--> 6fbf15ece534
+[2/3] STEP 10/17: ARG MAMBA_USER_ID=1000
+--> Using cache 413345a8272bb69f0946272d8d43b1219f20b55fb06502a0aae14f3c932fefe6
+--> 413345a8272b
+[2/3] STEP 11/17: ARG MAMBA_USER_GID=1000
+--> Using cache a80005ea125d98dc32ddaccff2ab033d3c463aa59ae8a324b9915bfb0e53e4fe
+--> a80005ea125d
+[2/3] STEP 12/17: ENV MAMBA_USER=$MAMBA_USER
+--> Using cache a7ba11649d157e4e85fcdde8dd6b07d26341b85dee197e4c96001c80b16125e5
+--> a7ba11649d15
+[2/3] STEP 13/17: COPY --chmod=0755 _dockerfile_initialize_user_accounts.sh /usr/local/bin/_dockerfile_initialize_user_accounts.sh
+--> Using cache a9a99fe975be8c61b09cd37b39696f81fddc04cf4005c41f12bd2b18ba42c8db
+--> a9a99fe975be
+[2/3] STEP 14/17: COPY --chmod=0755 _dockerfile_setup_root_prefix.sh /usr/local/bin/_dockerfile_setup_root_prefix.sh
+--> Using cache deecdb9676be65bbc293f5d044b55b565e73dbd199f6f01dcb830b59c0ceaf88
+--> deecdb9676be
+[2/3] STEP 15/17: RUN /usr/local/bin/_dockerfile_initialize_user_accounts.sh &&     /usr/local/bin/_dockerfile_setup_root_prefix.sh
+--> Using cache 206122d34fa148c276a4eaab744a55c301963c06a46e10c7c8b78ee6c1ef3346
+--> 206122d34fa1
+[2/3] STEP 16/17: WORKDIR /tmp
+--> Using cache 71ba525f45dd1dbcd3cfa681c6bfcce2e6934d88d9c9ff48d2ae1695a3bcb404
+--> 71ba525f45dd
+[2/3] STEP 17/17: CMD ["/bin/bash"]
+--> Using cache f1f5c60f1261f989a6730a1e6841ea5f532911335d363bf5e7d0de61004d3b8c
+--> f1f5c60f1261
+[3/3] STEP 1/18: FROM f1f5c60f1261f989a6730a1e6841ea5f532911335d363bf5e7d0de61004d3b8c
+[3/3] STEP 2/18: ENV PYTHON_VERSION=3.10
+--> Using cache d216cb866e3d1b433cf63f528f19de7d851683f5aef8d7c3de65afc1d80c81c0
+--> d216cb866e3d
+[3/3] STEP 3/18: ENV CHANNEL=rocketce
+--> Using cache 186128ebe12bf4d61c7195847be986a11b888b857b8519daae6faa99ffffd84f
+--> 186128ebe12b
+[3/3] STEP 4/18: ENV OPENCE_VERSION=1.9.1
+--> Using cache 37976edf29d3c28b5c41e7f4f59553502b4e83cb5e29f109c70aeb9ab1951ffb
+--> 37976edf29d3
+[3/3] STEP 5/18: ENV LD_LIBRARY_PATH=/opt/OpenBLAS/lib
+--> Using cache f9fd3d3de6f5cfee5c57fb895364b1d0e2fbd1005874882cee0681a42cdc17cc
+--> f9fd3d3de6f5
+[3/3] STEP 6/18: ENV PKG_CONFIG_PATH=/opt/OpenBLAS/lib/pkgconfig
+--> Using cache 29d66ff137df455e7694c5c2a2021744f8686d38c2dea112b2a025aab7757a9e
+--> 29d66ff137df
+[3/3] STEP 7/18: RUN dnf update -y && dnf install -y cmake gcc-c++ gfortran libxcrypt-compat libxcrypt && dnf clean all
+--> Using cache ef6cee78cff9959dab0a454421bc50fc40bf17eb4fdab6b2909a91979fd02db5
+--> ef6cee78cff9
+[3/3] STEP 8/18: WORKDIR /work
+--> Using cache 75fbd4134e2f0d1d30c1c8d02c3b522b3a02699cebefab483722163a233ddd47
+--> 75fbd4134e2f
+[3/3] STEP 9/18: RUN micromamba config append channels ${CHANNEL}/label/${CHANNEL}-${OPENCE_VERSION} &&     micromamba config append channels ${CHANNEL} &&     micromamba config append channels defaults &&     micromamba install -y -n base python=${PYTHON_VERSION} git "pyarrow>=12.0.0" "grpcio<=1.60.0,>=1.49.1" langchain "pytorch-cpu>=1.11.0" altair=4 streamlit transformers && micromamba clean --all --yes
+--> Using cache dd32602e6abf6b2e1e8b612224470974b093b5c1f9de35d86f4f784fade5cdf7
+--> dd32602e6abf
+[3/3] STEP 10/18: RUN mkdir -p /opt/rh/gcc-toolset-11/root/usr && ln -s /usr/bin /opt/rh/gcc-toolset-11/root/usr/bin
+--> Using cache c4ff7a64f8ab8d9d789973bcf5dcbf467b4abe63592ae4bb6120ccb54951d8b3
+--> c4ff7a64f8ab
+[3/3] STEP 11/18: RUN /opt/conda/bin/pip install --upgrade 'streamlit' pymilvus httpx asyncio pypdf httpx asyncio pypdf "sentence-transformers>=3.1.1" accelerate #'grpcio<=1.60.0,>=1.49.1' 'ujson>=2.0.0' 'pyarrow>=12.0.0' 'minio>=7.0.0' 'scipy' 
+--> Using cache 26eaaf5224f7d01a4a40eeb81f6a991822cd16f9c4f5eb3cdd4d9b607a1537f6
+--> 26eaaf5224f7
+[3/3] STEP 12/18: RUN /opt/conda/bin/pip cache purge
+--> Using cache b298a9439663d31c30d3e2a3d0511018be3cda4f9f7f6a737d9e420d9125ade7
+--> b298a9439663
+[3/3] STEP 13/18: RUN dnf erase -y cmake gcc-c++ gfortran && dnf clean all
+--> Using cache 49794c9fc9f64a5e21b4269a493ff3100bfd461531a523afa4c70901cec67e53
+--> 49794c9fc9f6
+[3/3] STEP 14/18: COPY MiniLM /work/
+--> 67b6becf17bc
+[3/3] STEP 15/18: COPY streamlit.py /work/
+--> 795caa96d497
+[3/3] STEP 16/18: USER 1001
+--> 6c5423a9a3c1
+[3/3] STEP 17/18: EXPOSE 8501
+--> cf8967dcf3fb
+[3/3] STEP 18/18: CMD [ "/opt/conda/bin/streamlit" , "run" , "/work/streamlit.py" ]
+[3/3] COMMIT quay.io/daniel_casali/pdf_rag_milvus:latest-offline-conda
+--> 6c0e4eded3ae
+Successfully tagged quay.io/daniel_casali/pdf_rag_milvus:latest-offline-conda
+6c0e4eded3ae2c68ee08b6b8d0d666d8619c1e25ffc078e2bbb2a75e030269c9

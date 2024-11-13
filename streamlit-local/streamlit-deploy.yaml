@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: streamlit
+  labels:
+    app: streamlit
+spec:
+  volumes:
+  - name: cache
+    emptyDir:
+      medium: Memory
+  - name: dshm
+    emptyDir:
+      medium: Memory
+  - name: tmp
+    emptyDir:
+      medium: Memory
+  containers:
+  - name: streamlit
+    env:
+    - name: PDF_URL
+      value: "https://github.com/DanielCasali/mma-ai/raw/main/datasource/The_Forgotten_Lighthouse_Book.pdf"
+    securityContext:
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      seccompProfile:
+        type: "RuntimeDefault" 
+    image: quay.io/daniel_casali/pdf_rag_milvus:latest
+    imagePullPolicy: Always
+    volumeMounts:
+      - mountPath: /.cache
+        name: cache
+      - mountPath: /tmp
+        name: tmp
+      - mountPath: /dev/shm
+        name: dshm
+    ports:
+    - containerPort: 8501
+      name: streamlit
