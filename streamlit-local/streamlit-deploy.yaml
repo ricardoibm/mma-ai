@@ -25,7 +25,7 @@ spec:
       allowPrivilegeEscalation: false
       seccompProfile:
         type: "RuntimeDefault" 
-    image: quay.io/daniel_casali/pdf_rag_milvus:latest
+    image: quay.io/daniel_casali/pdf_rag_milvus:latest-offline-conda-small
     imagePullPolicy: Always
     volumeMounts:
       - mountPath: /.cache
