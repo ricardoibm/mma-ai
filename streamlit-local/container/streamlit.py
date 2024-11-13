@@ -34,15 +34,7 @@ def load_and_process_pdfs():
     path_filename = os.path.split(path_query)
     # Get the filename
     pdf_names = [os.path.basename(path_filename[1])]
-#def load_and_process_pdfs():
-#    pdf_urls = [
-        #"https://www.redbooks.ibm.com/redbooks/pdfs/sg248513.pdf",
-        #"https://www.redbooks.ibm.com/redbooks/pdfs/sg248512.pdf"
-        #"https://github.com/DanielCasali/mma-ai/raw/main/datasource/The_Forgotten_Lighthouse_Book.pdf"
-#    ]
-    #pdf_names = ["The_Forgotten_Lighthouse_Book.pdf"]
-    #pdf_names = ["IBM_Redbook_8513.pdf", "IBM_Redbook_8512.pdf"]
-    
+
     all_docs = []
     
     for url, name in zip(pdf_urls, pdf_names):
@@ -61,8 +53,6 @@ def load_and_process_pdfs():
         all_docs.extend(split_docs)
     
     st.write("Embedding documents...")
-    embeddings_path='/work/MiniLM'
-#    embeddings = HuggingFaceEmbeddings(model_name=embeddings_path, model_kwargs={'device': 'cpu', 'repo_type': 'local'}, encode_kwargs={'normalize_embeddings': True})
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2",
     cache_folder="/work/", model_kwargs={'device': 'cpu'}, encode_kwargs={'normalize_embeddings': True})
     
