@@ -30,7 +30,7 @@ spec:
           resources: {}
       containers:
         - name: llama-cpp
-          image: quay.io/daniel_casali/llama.cpp-mma:mmatitle
+          image: quay.io/daniel_casali/llama.cpp-mma:v4
           imagePullPolicy: Always
           args: ["-m", "/models/granite-3.0-8b-instruct-Q4_K_M.gguf", "--prio", "3", "-c", "4096","-b", "32", "-t", "40", "-n", "-1"]
           ports:
