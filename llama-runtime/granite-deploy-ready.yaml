@@ -27,7 +27,7 @@ spec:
               else
                 echo "model /models/granite-3.0-8b-instruct-Q4_K_M.gguf already present"
               fi
-          resources: {}
+          resources: ""
       containers:
         - name: llama-cpp
           image: quay.io/daniel_casali/llama.cpp-mma:v4
