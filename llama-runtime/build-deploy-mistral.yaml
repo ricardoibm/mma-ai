@@ -33,7 +33,7 @@ spec:
     type: RollingUpdate
   template:
     metadata:
-      creationTimestamp: null
+      # creationTimestamp: ""
       labels:
         app: mma-ai
         deployment: mma-ai
